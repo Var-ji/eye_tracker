@@ -78,7 +78,7 @@ def loadTrainingData(data_path='./training_data'):
 def trainModel(data_path='./training_data'):
     X, Y = loadTrainingData(data_path)
     model = createModel()
-    opt = optimizers.RMSprop(learning_rate=0.0001, rho=0.9, decay=1e-6)
+    opt = optimizers.RMSprop(lr=0.0001, rho=0.9, decay=1e-6)
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
     model.summary()
 
