@@ -37,8 +37,10 @@ def image_processing(eye_frame, threshold):
         eye_frame = cv2.cvtColor(eye_frame, cv2.COLOR_BGR2GRAY)
 
     new_frame = cv2.bilateralFilter(eye_frame, 10, 15, 15)
-    new_frame = cv2.erode(new_frame, kernel, iterations=3)
     _, new_frame = cv2.threshold(new_frame, threshold, 255, cv2.THRESH_BINARY)
+    new_frame = cv2.dilate(new_frame, kernel, iterations=5)
+    new_frame = cv2.erode(new_frame, kernel, iterations=5)
+    cv2.imshow("Threshed", new_frame)
 
     return new_frame
 
@@ -46,7 +48,7 @@ def find_best_threshold(eye_frame):
     average_iris_size = 0.48 # Originally 0.48
     trials = {}
 
-    for thr in range(5, 100, 5):
+    for thr in range(5, 125, 5):
         iris_frame = image_processing(eye_frame, thr)
         trials[thr] = eye_iris_size(iris_frame)
 
@@ -95,7 +97,7 @@ def track_eye_centers(webcam=0):
 #-----------------------------------------<CONSTANTS AND SHAPE PREDICTORS>---------------------------------------#
 
     CALIBRATED = False
-    EYE_AR_THRESH = 0.25
+    EYE_AR_THRESH = 0.20
     EYE_AR_CONSEC_FRAMES = 3
 
     COUNTER = 0
