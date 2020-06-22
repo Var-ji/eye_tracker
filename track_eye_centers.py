@@ -4,6 +4,7 @@ from imutils.video import VideoStream
 from imutils import face_utils
 import numpy as np
 import imutils
+import mouse
 import time
 import dlib
 import cv2
@@ -33,19 +34,21 @@ def image_processing(eye_frame, threshold):
         A frame with a single element representing the iris
     """
     kernel = np.ones((3, 3), np.uint8)
+    #kernel[1][1] = 0
     if len(eye_frame.shape) > 2:
         eye_frame = cv2.cvtColor(eye_frame, cv2.COLOR_BGR2GRAY)
+    eye_frame = eye_frame[20:-20, 20:-20]
 
     new_frame = cv2.bilateralFilter(eye_frame, 10, 15, 15)
     _, new_frame = cv2.threshold(new_frame, threshold, 255, cv2.THRESH_BINARY)
-    new_frame = cv2.dilate(new_frame, kernel, iterations=5)
-    new_frame = cv2.erode(new_frame, kernel, iterations=5)
     cv2.imshow("Threshed", new_frame)
+    new_frame = cv2.dilate(new_frame, kernel, iterations=7)
+    new_frame = cv2.erode(new_frame, kernel, iterations=5)
 
     return new_frame
 
 def find_best_threshold(eye_frame):
-    average_iris_size = 0.48 # Originally 0.48
+    average_iris_size = 0.46 # Originally 0.48
     trials = {}
 
     for thr in range(5, 125, 5):
@@ -67,7 +70,7 @@ def detect_iris(eye_frame, threshold=80):
     success = False
     iris_frame = image_processing(eye_frame, threshold)
 
-    iris_frame = iris_frame[20:-20, 20:-20]
+    #iris_frame = iris_frame[20:-20, 20:-20]
 
     contours, _ = cv2.findContours(iris_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[-2:]
     contours = sorted(contours, key=cv2.contourArea)
@@ -167,6 +170,14 @@ def track_eye_centers(webcam=0):
                         break
                     else:
                         cv2.circle(pair[i], (x, y), 3, (0, 255, 0), 2)
+                        if (x-93) < -10:
+                            speed = int((x - 100) / 10)
+                            mouse.move(speed, 0, absolute=False, duration=0.1)
+                        elif (x-93) > 10:
+                            speed = int((x - 100) / 10)
+                            mouse.move(speed, 0, absolute=False, duration=0.1)
+                        else:
+                            pass
             #except:
             #    pass
 
@@ -175,6 +186,7 @@ def track_eye_centers(webcam=0):
             else:
                 if COUNTER >= EYE_AR_CONSEC_FRAMES:
                     TOTAL += 1
+                    mouse.click(button='left')
                 COUNTER = 0
 
             cv2.imshow("Left eye", pair[0])
